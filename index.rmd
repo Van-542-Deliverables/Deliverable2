@@ -1,0 +1,97 @@
+---
+title: "index"
+output:
+  html_document:
+    df_print: paged
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code.
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
+
+```{r}
+Glink="https://github.com/Van-542-Deliverables/Deliverable-1/raw/main/"
+Flink="CountryRankingFinal.csv"
+CFR=read.csv(paste0(Glink,Flink))
+
+row.names(CFR)=NULL
+str(CFR)
+
+dataToCluster=CFR[,-c(1,3)]
+row.names(dataToCluster)=CFR$name
+```
+
+```{r}
+set.seed(999)
+library(cluster)
+distanceMatrix=daisy(x=dataToCluster, metric = "gower")
+
+projectedData=cmdscale(distanceMatrix, k=2)
+
+CFR$dim1 = projectedData[,1]
+CFR$dim2 = projectedData[,2]
+
+CFR[,c('dim1','dim2')][1:10,]
+```
+
+```{r}
+hc=hclust(distanceMatrix)
+plot(hc,hang= -1,cex=.2)
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+library(factoextra)
+fviz_nbclust(dataToCluster, hcut, diss=distanceMatrix, method = "gap_stat", k.max = 15, verbose = F, hc_func = "diana")
+```
+
+```{r}
+NumberOfClusterDesired=10
+res.diana=hcut(distanceMatrix, k = NumberOfClusterDesired, isdiss=TRUE, hc_func='diana', hc_method="ward.D2")
+```
+
+```{r}
+CFR$dia=as.factor(res.diana$cluster)
+```
+
+```{r}
+fviz_silhouette(res.diana)
+```
+
+```{r}
+diaEval=data.frame(res.diana$silinfo$widths)
+diaPoor=rownames(diaEval[diaEval$sil_width<0,])
+
+library("qpcR")
+bad_Clus=as.data.frame(qpcR:::cbind.na(sort(diaPoor)))
+names(bad_Clus)=c("dia")
+bad_Clus
+```
+
+```{r}
+base= ggplot(data=CFR, aes(x=dim1, y=dim2, label=name))
+diaPlot=base+labs(title="DIANA") + geom_point(size=2, aes(color=dia), show.legend=T)
+#library(ggpubr)
+#ggarrange(agnPlot, diaPlot,ncol = 2,common.legent=T)
+```
+
+```{r}
+fviz_dend(res.diana, k=NumberOfClusterDesired, cex = 0.15, horiz = T, main = "DIANA approach")
+```
+
+```{r}
+table(CFR$Region,CFR$dia)
+```
+
+```{r}
+saveRDS(CFR,file='CFRClusterAnalysis.RDS')
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Cmd+Option+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Cmd+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
