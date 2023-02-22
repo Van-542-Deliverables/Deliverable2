@@ -10,7 +10,7 @@ This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute
 Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Cmd+Shift+Enter*.
 
 ```{r}
-Glink="https://github.com/Van-542-Deliverables/Deliverable-1/raw/main/"
+Glink="https://github.com/Van-542-Deliverables/Deliverable2/raw/main/"
 Flink="CountryRankingFinal.csv"
 CFR=read.csv(paste0(Glink,Flink))
 
